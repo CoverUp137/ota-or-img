@@ -12,6 +12,17 @@ on:
         required: true
         default: 'boot'
         type: string
+      upload_to_release:
+        description: 'Upload to Releases'
+        required: true
+        type: boolean
+        default: true
+      upload_to_artifacts:
+        description: 'Upload to Workflow Artifacts'
+        required: true
+        type: boolean
+        default: false
+
   # 定时触发, 每天凌晨自动清理仓库中所有旧的工作流记录和 Releases
 #  schedule:
 #    - cron: '0 0 * * *'
@@ -54,7 +65,7 @@ jobs:
           if [ -f "payload_properties.txt" ]; then
             echo "--- Payload Properties ---"
             cat payload_properties.txt
-            DEVICE_MODEL=$(grep "oplus_rom_version" payload_properties.txt | cut -d'=' -f2)
+            DEVICE_MODEL=$(grep "ota_target_version" payload_properties.txt | cut -d'=' -f2)
             echo "DEVICE_MODEL=$DEVICE_MODEL" >> $GITHUB_ENV
           fi
           
@@ -73,7 +84,8 @@ jobs:
           echo "提取的分区文件:"
           ls -lh
 
-      - name: Create Release and Upload Assets
+      - name: Upload to Releases
+        if: github.event.inputs.upload_to_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "extract-${{ github.run_id }}"
@@ -87,6 +99,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
+      - name: Upload to Workflow Artifacts
+        if: github.event.inputs.upload_to_artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "extracted-partitions-${{ env.DEVICE_MODEL || 'unknown' }}"
+          path: |
+            output/*
+            payload_properties.txt
+          retention-days: 5
+
       - name: Delete Old Workflow Runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
@@ -95,10 +117,11 @@ jobs:
           retain_days: 5
           keep_minimum_runs: 0
 
-    #  - name: Delete Old Releases
-     #   uses: dev-drprasad/delete-older-releases@v0.1.0
-     #   with:
-     #     keep_latest: 0
-     #     delete_older_than: 5
-    #    env:
-     #     GITHUB_TOKEN: ${{ secrets.TOKEN }}
+#      - name: Delete Old Releases
+#        uses: dev-drprasad/delete-older-releases@v0.1.0
+#        with:
+#          keep_latest: 0
+#          delete_older_than: 5
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
