@@ -20,12 +20,12 @@ on:
       magisk_version:
         description: 'Magisk Version (e.g., 27.0)'
         required: false
-        default: '27.0'
+        default: '30.6'
         type: string
       ksu_version:
         description: 'KernelSU Version (e.g., 0.9.5)'
         required: false
-        default: '0.9.5'
+        default: '3.0.0'
         type: string
       kmi_version:
         description: 'KMI Version (e.g., android15-6.6)'
