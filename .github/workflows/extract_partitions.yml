@@ -54,7 +54,7 @@ jobs:
           if [ -f "payload_properties.txt" ]; then
             echo "--- Payload Properties ---"
             cat payload_properties.txt
-            DEVICE_MODEL=$(grep "ota_target_version" payload_properties.txt | cut -d'=' -f2)
+            DEVICE_MODEL=$(grep "oplus_rom_version" payload_properties.txt | cut -d'=' -f2)
             echo "DEVICE_MODEL=$DEVICE_MODEL" >> $GITHUB_ENV
           fi
           
@@ -86,9 +86,9 @@ jobs:
             payload_properties.txt
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          
-      - name: Delete Old Workflow Runs (All Workflows)
-        uses: AdityaGaurav84/delete-workflow-runs@v2.3.1
+
+      - name: Delete Old Workflow Runs
+        uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ secrets.TOKEN }}
           repository: ${{ github.repository }}
@@ -96,9 +96,9 @@ jobs:
           keep_minimum_runs: 0
 
       - name: Delete Old Releases
-        uses: dev-drprasad/delete-older-releases@v0.3.3
+        uses: dev-drprasad/delete-older-releases@v0.1.0
         with:
           keep_latest: 0
-          delete_older_than: 5d
+          delete_older_than: 5
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
