@@ -35,7 +35,7 @@
 ### 3. 查看结果
 
 1.  工作流运行完成后，进入项目的 **Releases** 标签页。
-2.  你将看到一个新的 Release，其标题将包含提取的设备型号（如果 `payload_properties.txt` 中包含该信息）。
+2.  你将看到一个新的 Release，其标题将包含提取的固件版本（如果 `payload_properties.txt` 中包含该信息）。
 3.  Release 附件中将包含你指定提取的所有分区文件（`.img` 文件）以及 `payload_properties.txt` 文件。
 
 ## 工作流文件 (`.github/workflows/extract_partitions.yml`)
