@@ -95,10 +95,10 @@ jobs:
           retain_days: 5
           keep_minimum_runs: 0
 
-      - name: Delete Old Releases
-        uses: dev-drprasad/delete-older-releases@v0.1.0
-        with:
-          keep_latest: 0
-          delete_older_than: 5
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+    #  - name: Delete Old Releases
+     #   uses: dev-drprasad/delete-older-releases@v0.1.0
+     #   with:
+     #     keep_latest: 0
+     #     delete_older_than: 5
+    #    env:
+     #     GITHUB_TOKEN: ${{ secrets.TOKEN }}
