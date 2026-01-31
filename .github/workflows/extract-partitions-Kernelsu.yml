@@ -125,26 +125,42 @@ jobs:
               --magiskboot ./magiskboot \
               --kmi "${KMI_VER}" \
               -b "$TARGET_IMG"
-            
-            # 检查补丁后的文件并重命名
-            if [ -f "kernelsu_boot_patched.img" ]; then
-              mv kernelsu_boot_patched.img "output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
-              echo "补丁成功: output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+
+
+            PATCHED_FILE=$(ls kernelsu_patched*.img 2>/dev/null | head -n 1)
+            if [ -n "$PATCHED_FILE" ]; then
+              echo "检测到补丁镜像: $PATCHED_FILE"
+              mv "$PATCHED_FILE" "output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+              echo "已重命名为: output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
             else
-              # 有些版本的 ksud 可能会直接修改原文件或输出不同名称，这里做个兼容处理
-              PATCHED_FILE=$(ls kernelsu_*.img 2>/dev/null | head -n 1)
-              if [ -n "$PATCHED_FILE" ]; then
-                mv "$PATCHED_FILE" "output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
-                echo "补丁成功: output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
-              else
-                echo "错误: 未找到补丁后的镜像文件。"
-                exit 1
-              fi
+              echo "错误: 未找到补丁后的镜像文件 (kernelsu_patched*.img)。"
+              ls -R
+              exit 1
             fi
           else
             echo "错误: 未在提取的分区中找到 $TARGET_IMG，无法进行补丁。"
             exit 1
           fi
+            
+            # 检查补丁后的文件并重命名
+          #  if [ -f "kernelsu_boot_patched.img" ]; then
+          #    mv kernelsu_boot_patched.img "output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+          #    echo "补丁成功: output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+          #  else
+           #   # 有些版本的 ksud 可能会直接修改原文件或输出不同名称，这里做个兼容处理
+            #  PATCHED_FILE=$(ls kernelsu_*.img 2>/dev/null | head -n 1)
+           #   if [ -n "$PATCHED_FILE" ]; then
+            #    mv "$PATCHED_FILE" "output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+            #    echo "补丁成功: output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+            #  else
+            #    echo "错误: 未找到补丁后的镜像文件。"
+            #    exit 1
+           #   fi
+          #  fi
+         # else
+          #  echo "错误: 未在提取的分区中找到 $TARGET_IMG，无法进行补丁。"
+          #  exit 1
+         # fi
 
       - name: Prepare Assets
         run: |
