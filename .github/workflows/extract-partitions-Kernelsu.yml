@@ -1,55 +1,55 @@
 name: extract-partitions-Kernelsu
 
 on:
-  workflow_dispatch:
+ workflow_dispatch:
     inputs:
       firmware_url:
-        description: 'Firmware ZIP URL'
+        description: '固件 ZIP 下载地址 (URL)'
         required: true
         type: string
       partitions:
-        description: 'Partitions to extract (comma separated, e.g., boot,init_boot,vendor_boot)'
+        description: '需要提取的分区 (逗号分隔，例如: boot,init_boot,vendor_boot)'
         required: true
-        default: 'init_boot'
+        default: 'boot,init_boot'
         type: string
       patch_kernelsu:
-        description: 'Patch with KernelSU (LKM)'
+        description: '是否使用 KernelSU 进行补丁 (LKM 模式)'
         required: true
         type: boolean
         default: false
       magisk_version:
-        description: 'Magiskboot Version (e.g., 27.0)'
+        description: 'Magiskboot 版本 (用于提取 magiskboot，例如: 30.6)'
         required: false
         default: '30.6'
         type: string
       ksu_version:
-        description: 'KernelSU Version (e.g., 0.9.5)'
+        description: 'KernelSU 版本 (例如: 3.0.0)'
         required: false
         default: '3.0.0'
         type: string
       kmi_version:
-        description: 'KMI Version (e.g., android15-6.6)'
+        description: 'KMI 版本 (内核版本，例如: android15-6.6)'
         required: false
         default: 'android15-6.6'
         type: string
       patch_target:
-        description: 'Partition to patch (e.g., init_boot or boot)'
+        description: '需要补丁的目标分区 (例如: init_boot 或 boot)'
         required: false
         default: 'init_boot'
         type: string
       upload_to_release:
-        description: 'Upload to Releases'
+        description: '是否上传到 Releases'
         required: true
         type: boolean
         default: true
       upload_to_artifacts:
-        description: 'Upload to Workflow Artifacts'
+        description: '是否上传到工作流 Artifacts (Actions 页面下载)'
         required: true
         type: boolean
         default: false
 
-  schedule:
-    - cron: '0 0 * * *'
+#  schedule:
+#    - cron: '0 0 * * *'
 
 jobs:
   extract:
