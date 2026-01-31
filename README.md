@@ -4,9 +4,9 @@
 
 ## 🛠️ 使用方法
 
-1. 设置`GitHub Token` 点击右上角的个人头像---`Settings`-----`Developer Settings`---`Personal access tokens`创建密钥
+1. 获取`GitHub Token` 点击右上角的个人头像---`Settings`-----`Developer Settings`---`Personal access tokens`创建密钥
 2. **Fork 本仓库** 到你的 GitHub 账号下。
-3. `Settings`---`Secrets and variables`---`Repository secrets`---`NewRepository secrets`--变量名为`TOKEN`
+3. 进入仓库的`Settings`---`Secrets and variables`---`Repository secrets`---`NewRepository secrets`--变量名为`TOKEN`--密钥粘贴已获取的
 4. 进入仓库的 **Actions** 页面。
 6. 在左侧选择 **"固件分区提取与 KernelSU 补丁"** 工作流。
 7. 点击右侧的 **"Run workflow"**，填写以下参数：
