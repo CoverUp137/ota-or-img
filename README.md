@@ -1,36 +1,36 @@
-# Android Firmware Partition Extractor & KernelSU Auto-Patcher
+# Android 固件分区提取与 KernelSU 自动补丁工具
 
-This is a GitHub Actions-based automation tool designed to help users extract specific partitions from Android firmware (`payload.bin`) and optionally apply KernelSU LKM-mode Root patches.
+这是一个基于 GitHub Actions 的自动化工具，旨在帮助用户从 Android 固件（payload.bin）中提取指定分区，并可选地使用 KernelSU 进行 LKM 模式的 Root 补丁。
 
-## 🛠️ Usage Instructions
+## 🛠️ 使用方法
 
-1. **Obtain GitHub Token**: Click your profile picture in the top right corner -> **Settings** -> **Developer Settings** -> **Personal access tokens** -> Create a new token.
-2. **Fork this Repository**: Fork this project to your own GitHub account.
-3. **Configure Secrets**: Go to your repository's **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**. Set the name to `TOKEN` and paste your personal access token.
-4. **Access Actions**: Navigate to the **Actions** tab in your repository.
-5. **Select Workflow**: Choose the **"Firmware Partition Extraction & KernelSU Patch"** workflow from the left sidebar.
-6. **Run Workflow**: Click **"Run workflow"** on the right and fill in the following parameters:
-   - **Firmware ZIP URL**: Direct download link for the firmware.
-   - **Partitions to extract**: Default is `boot,init_boot`, modify as needed (comma-separated).
-   - **Patch with KernelSU**: Check this box to enable the patching feature.
-   - **Magisk Version**: Used to extract the `magiskboot` tool (e.g., `30.6`).
-   - **KernelSU Version**: Specify the KSU version (e.g., `3.0.0`).
-   - **KMI Version**: Specify the kernel version (e.g., `android15-6.6`). This must match the `.ko` filename in the official KernelSU Release.
-   - **Target Partition to Patch**: Usually `init_boot` or `boot`.
-   - **Upload Options**: Choose whether to upload to Releases or Workflow Artifacts.
+1. 获取`GitHub Token` 点击右上角的个人头像---`Settings`-----`Developer Settings`---`Personal access tokens`创建密钥
+2. **Fork 本仓库** 到你的 GitHub 账号下。
+3. 进入仓库的`Settings`---`Secrets and variables`---`Repository secrets`---`NewRepository secrets`--变量名为`TOKEN`---并粘贴已获取的密钥
+4. 进入仓库的 **Actions** 页面。
+6. 在左侧选择 **"固件分区提取与 KernelSU 补丁"** 工作流。
+7. 点击右侧的 **"Run workflow"**，填写以下参数：
+   - **固件 ZIP 下载地址**：固件的直接下载链接。
+   - **需要提取的分区**：默认为 `boot,init_boot`，可根据需要修改。
+   - **是否使用 KernelSU 进行补丁**：勾选即开启补丁功能。
+   - **Magisk 版本**：用于提取 `magiskboot` 工具（如 `30.6`）。
+   - **KernelSU 版本**：指定 KSU 版本（如 `3.0.0`）。
+   - **KMI 版本**：指定内核版本（如 `android15-6.6`），需与 KSU 官方 Release 的 `.ko` 文件名匹配。
+   - **需要补丁的目标分区**：通常为 `init_boot` 或 `boot`。
+   - **上传选项**：选择上传到 Releases 或 Artifacts。
 
-## 📂 File Descriptions
+## 📂 文件说明
 
-- `.github/workflows/extract-partitions-Kernelsu.yml`: The core workflow configuration file.
-- `README.md`: This documentation file.
+- `.github/workflows/extract-partitions-Kernelsu.yml`: 核心工作流配置文件。
+- `README.md`: 本说明文档。
 
-## ⚠️ Important Notes
+## ⚠️ 注意事项
 
-- **KMI Version Matching**: KernelSU patching is highly dependent on the accuracy of the KMI version. Please ensure your kernel version is correct.
-- **Storage Space**: GitHub Actions has storage limits. It is recommended to check manually or rely on the built-in auto-cleanup feature (runs every 5 days).
-- **Disclaimer**: This tool is for technical exchange only. Flashing your device carries risks; please proceed with caution.
+- **KMI 版本匹配**：KernelSU 补丁非常依赖 KMI 版本的准确性，请务必确认你的内核版本。
+- **存储空间**：GitHub Actions 有存储限制，建议定期手动检查或依赖内置的自动清理功能。
+- **免责声明**：本工具仅供技术交流使用，刷机有风险，操作需谨慎。
 
-## 🤝 Credits & Plugins
+## 🤝 插件支持
 
 - [payload-dumper-go](https://github.com/ssut/payload-dumper-go)
 - [KernelSU](https://github.com/tiann/KernelSU)
