@@ -1,4 +1,4 @@
-name: extract-partitions-Kernelsu
+name: Firmware Partition Extraction & KernelSU Patch
 
 on:
  workflow_dispatch:
