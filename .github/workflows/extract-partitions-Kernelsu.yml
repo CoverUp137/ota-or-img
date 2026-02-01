@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       device_model:
-        description: '设备型号和固件版本 (例如: 一加ace5pro-c15-618)，不填默认为 Unknown Device'
+        description: '设备型号和固件版本 (例如: 一加ace5pro-c15-861)，不填默认为 Unknown Device'
         required: false
         default: ''
         type: string
