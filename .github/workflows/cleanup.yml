@@ -3,7 +3,7 @@ name: Cleanup Old Workflows and Releases
 on:
   # 每天凌晨3点执行（UTC时间）
   schedule:
-    - cron: '0 18 * * *'
+    - cron: '0 10 * * *'
   # 也可以手动触发
   workflow_dispatch:
 
