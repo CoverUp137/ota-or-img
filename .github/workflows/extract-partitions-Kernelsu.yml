@@ -28,9 +28,9 @@ on:
         default: '30.6'
         type: string
       ksu_version:
-        description: 'KernelSU 版本 (例如: 3.0.0)'
+        description: 'KernelSU 版本 (例如: 3.1.0)'
         required: false
-        default: '3.0.0'
+        default: '3.1.0'
         type: string
       kmi_version:
         description: 'KMI 版本 (内核版本，例如: android15-6.6)'
