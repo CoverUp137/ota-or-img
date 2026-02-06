@@ -1,0 +1,188 @@
+name: Firmware Partition Extraction & KernelSU Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      firmware_url:
+        description: '固件 ZIP 下载地址 (URL)'
+        required: true
+        type: string
+      device_model:
+        description: '设备型号和固件版本 (例如: 一加ace5pro-c15-861)，不填默认为 Unknown Device'
+        required: false
+        default: ''
+        type: string
+      partitions:
+        description: '需要提取的分区 (逗号分隔，例如: boot,init_boot,vendor_boot)'
+        required: true
+        default: 'boot,init_boot'
+        type: string
+      patch_kernelsu:
+        description: '是否使用 KernelSU 进行补丁 (LKM 模式)'
+        required: true
+        type: boolean
+        default: true
+      kmi_version:
+        description: 'KMI 版本 (内核版本，例如: android15-6.6)'
+        required: true
+        default: 'android15-6.6'
+        type: string
+      patch_target:
+        description: '需要补丁的目标分区 (例如: init_boot 或 boot)'
+        required: false
+        default: 'init_boot'
+        type: string
+      upload_to_release:
+        description: '是否上传到 Releases'
+        required: true
+        type: boolean
+        default: true
+      upload_to_artifacts:
+        description: '是否上传到工作流 Artifacts (Actions 页面下载)'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget xz-utils unzip curl jq
+
+      - name: Download payload-dumper-go
+        run: |
+          wget -q https://github.com/ssut/payload-dumper-go/releases/download/1.3.0/payload-dumper-go_1.3.0_linux_amd64.tar.gz
+          tar -zxf payload-dumper-go_1.3.0_linux_amd64.tar.gz
+          chmod +x payload-dumper-go
+
+      - name: Download Firmware
+        run: |
+          echo "开始下载固件..."
+          curl -L -o firmware.zip "${{ github.event.inputs.firmware_url }}" --progress-bar
+          echo "下载完成!"
+
+      - name: Extract payload_properties.txt and payload.bin
+        run: |
+          unzip -q firmware.zip payload_properties.txt payload.bin -d . || unzip -q firmware.zip payload.bin -d .
+
+      - name: Extract Partitions
+        run: |
+          mkdir -p output
+          ./payload-dumper-go -p "${{ github.event.inputs.partitions }}" -o output payload.bin
+
+      - name: KernelSU LKM Patch
+        if: github.event.inputs.patch_kernelsu == 'true'
+        run: |
+          TARGET_IMG="output/${{ github.event.inputs.patch_target }}.img"
+          if [ -f "$TARGET_IMG" ]; then
+            echo "检测到 $TARGET_IMG，开始进行 KernelSU 补丁..."
+            
+            # 自动识别架构
+            ARCH=$(uname -m)
+            echo "当前机器架构: $ARCH"
+            
+            # 自动获取 Magisk 最新版本
+            echo "正在获取 Magisk 最新版本..."
+            MAGISK_RELEASE_JSON=$(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/latest)
+            MAGISK_VER=$(echo "$MAGISK_RELEASE_JSON" | jq -r .tag_name | sed 's/v//')
+            echo "使用 Magisk 版本: $MAGISK_VER"
+            
+            # 自动获取 KernelSU 最新版本
+            echo "正在获取 KernelSU 最新版本..."
+            KSU_RELEASE_JSON=$(curl -s https://api.github.com/repos/tiann/KernelSU/releases/latest)
+            KSU_VER=$(echo "$KSU_RELEASE_JSON" | jq -r .tag_name | sed 's/v//')
+            echo "使用 KernelSU 版本: $KSU_VER"
+            
+            KMI_VER="${{ github.event.inputs.kmi_version }}"
+            
+            echo "正在准备 magiskboot..."
+            # 提取 magiskboot，根据架构选择路径
+            curl -L -o Magisk.apk "https://github.com/topjohnwu/Magisk/releases/download/v${MAGISK_VER}/Magisk-v${MAGISK_VER}.apk"
+            if [ "$ARCH" = "x86_64" ]; then
+              unzip -q Magisk.apk "lib/x86_64/libmagiskboot.so" -d .
+              mv lib/x86_64/libmagiskboot.so magiskboot
+            elif [ "$ARCH" = "aarch64" ]; then
+              unzip -q Magisk.apk "lib/arm64-v8a/libmagiskboot.so" -d .
+              mv lib/arm64-v8a/libmagiskboot.so magiskboot
+            else
+              echo "不支持的架构: $ARCH，尝试使用 x86_64 版本"
+              unzip -q Magisk.apk "lib/x86_64/libmagiskboot.so" -d .
+              mv lib/x86_64/libmagiskboot.so magiskboot
+            fi
+            chmod +x magiskboot
+            
+            echo "正在下载 kernelsu.ko (KMI: $KMI_VER)..."
+            curl -L -o kernelsu.ko "https://github.com/tiann/KernelSU/releases/download/v${KSU_VER}/${KMI_VER}_kernelsu.ko"
+            
+            echo "正在准备 ksud..."
+            if [ "$ARCH" = "x86_64" ]; then
+              KSUD_ASSET="ksud-x86_64-unknown-linux-musl"
+            elif [ "$ARCH" = "aarch64" ]; then
+              KSUD_ASSET="ksud-aarch64-unknown-linux-musl"
+            else
+              KSUD_ASSET="ksud-x86_64-unknown-linux-musl"
+            fi
+            curl -L -o ksud "https://github.com/tiann/KernelSU/releases/download/v${KSU_VER}/${KSUD_ASSET}"
+            chmod +x ksud
+            
+            echo "执行补丁命令..."
+            ./ksud boot-patch \
+              --magiskboot ./magiskboot \
+              --kmi "${KMI_VER}" \
+              -b "$TARGET_IMG"
+
+            PATCHED_FILE=$(ls kernelsu_*.img 2>/dev/null | head -n 1)
+            if [ -n "$PATCHED_FILE" ]; then
+              echo "检测到补丁镜像: $PATCHED_FILE"
+              mv "$PATCHED_FILE" "output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+              echo "已重命名为: output/${{ github.event.inputs.patch_target }}_ksu_patched.img"
+            else
+              echo "错误: 未找到补丁后的镜像文件 (kernelsu_patched*.img)。"
+              ls -R
+              exit 1
+            fi
+          else
+            echo "错误: 未在提取的分区中找到 $TARGET_IMG，无法进行补丁。"
+            exit 1
+          fi
+
+      - name: Prepare Assets
+        run: |
+          if [ -f "payload_properties.txt" ]; then
+            cp payload_properties.txt output/
+          fi
+          echo "最终文件列表:"
+          ls -lh output/
+
+      - name: Upload to Releases
+        if: github.event.inputs.upload_to_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "extract-${{ github.run_id }}"
+          name: "${{ github.event.inputs.device_model || 'Unknown Device' }}"
+          body: |
+            设备型号及版本: ${{ github.event.inputs.device_model || 'Unknown Device' }}
+            提取的分区: ${{ github.event.inputs.partitions }}
+            KernelSU补丁: ${{ github.event.inputs.patch_kernelsu }}
+            KMI 版本: ${{ github.event.inputs.kmi_version }}
+          files: |
+            output/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: Upload to Artifacts
+        if: github.event.inputs.upload_to_artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ github.event.inputs.device_model || 'Unknown-Device' }}-${{ github.run_id }}"
+          path: output/*
